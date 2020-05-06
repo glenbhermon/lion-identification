@@ -1,5 +1,5 @@
 ﻿
-import wx #GUI toolkit [Did you know?, wx is a c++ library(wxWidgets) now ported to pyhton as wxPython]
+import wx #GUI toolkit, wx is a c++ library(wxWidgets) now ported to pyhton as wxPython]
 import cv2 # OpenCV toolkit
 
 import LeoSpyUI as lsu
@@ -22,7 +22,11 @@ class MainWindow(lsu.MyFrame1):
         #self.m_panel1 = (self.canvas)
     
     
-    def reset(self,event):
+    def reset(self,event): 
+        '''
+        All panels and bitmaps are reset by referencing
+        their respective reset functions
+        '''
         self.cList =[]
         self.m_bitmap21.SetBitmap(wx.NullBitmap)
         self.m_bitmap2.SetBitmap(wx.NullBitmap)
@@ -31,6 +35,11 @@ class MainWindow(lsu.MyFrame1):
         self.flag=0
 
     def Log(self, text):
+        '''
+        This is a small function that we defined 
+        to be able to keep sending whatever message we want to display
+        within the window in the form of status text messages
+        '''
         self.m_textCtrl2.AppendText(text)
         if not text[-1] == "\n":
             self.m_textCtrl2.AppendText("\n")
@@ -40,18 +49,21 @@ class MainWindow(lsu.MyFrame1):
         """ 
         Browse for file
         """
+        '''
+        function to browse for an image and get its filepath
+        '''
         wildcard = "All files (*.*)|*.*"
         dialog = wx.FileDialog(None, "Choose a file",
                                wildcard=wildcard,
                                style=wx.OPEN)
         if dialog.ShowModal() == wx.ID_OK:
-            self.photoTxt = (dialog.GetPath())
+            self.photoTxt = (dialog.GetPath()) #saves the path address
         else:
             self.onBrowse(event)
         dialog.Destroy()
-        self.img = wx.Image(self.photoTxt, wx.BITMAP_TYPE_ANY) 
+        self.img = wx.Image(self.photoTxt, wx.BITMAP_TYPE_ANY) # loads the image into img
         self.flag+=1
-        self.onZoom(event=None)
+        self.onZoom(event=None) #in-house function call
         self.cList =[]
 
     def onView(self):
