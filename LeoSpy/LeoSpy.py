@@ -67,7 +67,7 @@ class MainWindow(lsu.MyFrame1):
         self.cList =[]
 
     def onView(self):
-        self.filepath = self.photoTxt
+        self.filepath = self.photoTxt#Duplicate filepath from the filepath in photoTxt
         
         self.img0=cv2.imread('crop.png',0)
         cv2.imwrite('sam.png', self.img0)
