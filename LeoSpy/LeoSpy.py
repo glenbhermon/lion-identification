@@ -69,7 +69,7 @@ class MainWindow(lsu.MyFrame1):
     def onView(self):
         self.filepath = self.photoTxt#Duplicate filepath from the filepath in photoTxt
         
-        self.img0=cv2.imread('crop.png',0)
+        self.img0=cv2.imread('crop.png',0)#Cropped image
         cv2.imwrite('sam.png', self.img0)
         self.img1=cv2.imread('sam.png')
         self.img2 = wx.Image('sam.png', wx.BITMAP_TYPE_ANY)
