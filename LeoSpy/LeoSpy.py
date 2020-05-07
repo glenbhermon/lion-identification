@@ -97,18 +97,38 @@ class MainWindow(lsu.MyFrame1):
         #img3 -> empty wx image with same scale of 600 (600 being the larger dimension)
 
     def onZoom(self,event):
-        ZoomApp = ZoomFrame(self)
-        ZoomApp.Show()
+        ZoomApp = ZoomFrame(self) # making an object of class ZoomFrame
+        ZoomApp.Show()# calling the Show function from the wx toolkit for this frame
 
     def someListener(self,evt):
         
         X=evt.GetX()
         Y=evt.GetY()
+		'''
+		Event binding the left click on bitmap 21 where img2 is displayed
+		in LeoSpyUI -> wx.EVT_LEFT_DOWN
+		'''
         if (self.flag==0):
             self.onBrowse(evt)
-        mR=self.img2.GetRed(X,Y)
         
+		#Getting the value of the red channel on the clicked pixel
+        mR=self.img2.GetRed(X,Y)
+
         self.blob=wx.EmptyImage(self.NewW,self.NewH)
+
+		'''
+		The following code tries to set a jump value: meaning the amound of
+		darkness that an adjacent pixel increase based on the darkness of the current pixel
+		which is clicked by the user, this value is assumed by taking the value
+		of the red channel of the current clicked pixel. The higher the current 
+		red value the smaller the the difference of the jump value. When there is 
+		a greater fluctuation, ie., a greater difference in the red channel value 
+		of the current pixel with the next pixel (the differnce more that what 
+		is set by the below jump value), then we have reached the edge of the 
+		whisker spot, owing to the end of the darkness of the spot and the light 
+		colour of the fur. This is the method used to enf the loop that searches 
+		for the extant of every clicked whisker.
+		'''
 
         '''if (mR>=20 and mR<=40):
             mVmax=mR+10
@@ -133,9 +153,9 @@ class MainWindow(lsu.MyFrame1):
             
         c=1        
         i=1
-        self.Xc=0
-        self.Yc=0
-        self.Wn=0
+        self.Xc=0#this stores the sum od all the x coordinates to later calculate the centroid of a single whisker spot
+        self.Yc=0#this stores the sum od all the y coordinates to later calculate the centroid of a single whisker spot
+        self.Wn=0# this stores the total number of pixels picked up to later calculate the centroid of a single whisker spot
         
 
         while (i <= c):
@@ -419,11 +439,17 @@ class MainWindow(lsu.MyFrame1):
                     self.Wn+=1
 
 
-            i = i+1
+            i = i+1#incrementer for the main while loop
             if s>=3 :
-                c = c+1
+                c = c+1# if there are more than 3 pixels marked in a single run, continue searching
         
-        self.centroid()    
+        self.centroid()
+		'''
+		calling the cenrtoid function to compute the centroud 
+		of a single whisker spot, after finding all its contributing pixels
+		'''
+
+
         # scale the image, preserving the aspect ratio
         W = self.img3.GetWidth()
         H = self.img3.GetHeight()
@@ -435,6 +461,8 @@ class MainWindow(lsu.MyFrame1):
             NewW = 200 * W / H
         self.img4 = self.img3
         self.img4 = self.img4.Scale(NewW,NewH)
+
+		#the image to have a small preview in the UI
  
         self.m_bitmap2.SetBitmap(wx.BitmapFromImage(self.img4))
         self.m_panel1.Refresh()
@@ -464,7 +492,7 @@ class MainWindow(lsu.MyFrame1):
         cx = self.Xc/self.Wn
         cy = self.Yc/self.Wn
         self.cList2 = []
-        self.cList2.append((cx,cy))
+        self.cList2.append((cx,cy))#this maintains the list of centroids until all the whiskers are clicked
         self.cList.extend(self.cList2)
         #print "Updated List : ", self.cList
         self.Log("Centroid is : %d , %d  " % (cx, cy))
