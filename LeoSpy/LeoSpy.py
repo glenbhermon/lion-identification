@@ -2,7 +2,7 @@
 import wx #GUI toolkit, wx is a c++ library(wxWidgets) now ported to pyhton as wxPython]
 import cv2 # OpenCV toolkit
 
-import LeoSpyUI as lsu
+import LeoSpyUI as lsu #wx.BoxSizer makes box grids to fit UI elements
 import math
 import csv
 import os
@@ -69,11 +69,15 @@ class MainWindow(lsu.MyFrame1):
     def onView(self):
         self.filepath = self.photoTxt#Duplicate filepath from the filepath in photoTxt
         
-        self.img0=cv2.imread('crop.png',0)#Cropped image
+        self.img0=cv2.imread('crop.png',0)
         cv2.imwrite('sam.png', self.img0)
         self.img1=cv2.imread('sam.png')
         self.img2 = wx.Image('sam.png', wx.BITMAP_TYPE_ANY)
-        
+        '''
+        img0 -> cropped image
+        img1 -> cropped saved as sam.png (cv2)
+        img2 -> cropped loaded from sam.png (wx)
+        '''
         
         # scale the image, preserving the aspect ratio
         W = self.img2.GetWidth()
@@ -85,10 +89,12 @@ class MainWindow(lsu.MyFrame1):
             self.NewH = self.PhotoMaxSize
             self.NewW = self.PhotoMaxSize * W / H
         self.img2 = self.img2.Scale(self.NewW,self.NewH)
+        #img2 scaled to 600 (600 being the larger dimension)
 
         self.m_bitmap21.SetBitmap(wx.BitmapFromImage(self.img2))
         self.m_panel1.Refresh()
         self.img3 = wx.EmptyImage(self.NewW,self.NewH)
+        #img3 -> empty wx image with same scale of 600 (600 being the larger dimension)
 
     def onZoom(self,event):
         ZoomApp = ZoomFrame(self)
