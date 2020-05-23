@@ -55,7 +55,7 @@ class MainWindow(lsu.MyFrame1):
         wildcard = "All files (*.*)|*.*"
         dialog = wx.FileDialog(None, "Choose a file",
                                wildcard=wildcard,
-                               style=wx.OPEN)
+                               style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
             self.photoTxt = (dialog.GetPath()) #saves the path address
         else:
@@ -70,7 +70,11 @@ class MainWindow(lsu.MyFrame1):
         self.filepath = self.photoTxt#Duplicate filepath from the filepath in photoTxt
         
         self.img0=cv2.imread('crop.png',0)
-        cv2.imwrite('sam.png', self.img0)
+
+        self.th3 = cv2.adaptiveThreshold(self.img0,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY_INV,501,45)
+
+        cv2.imwrite('sam.png', self.th3)
         self.img1=cv2.imread('sam.png')
         self.img2 = wx.Image('sam.png', wx.BITMAP_TYPE_ANY)
         '''
@@ -104,31 +108,31 @@ class MainWindow(lsu.MyFrame1):
         
         X=evt.GetX()
         Y=evt.GetY()
-		'''
-		Event binding the left click on bitmap 21 where img2 is displayed
-		in LeoSpyUI -> wx.EVT_LEFT_DOWN
-		'''
+        '''
+        Event binding the left click on bitmap 21 where img2 is displayed
+        in LeoSpyUI -> wx.EVT_LEFT_DOWN
+        '''
         if (self.flag==0):
             self.onBrowse(evt)
         
-		#Getting the value of the red channel on the clicked pixel
+        #Getting the value of the red channel on the clicked pixel
         mR=self.img2.GetRed(X,Y)
 
         self.blob=wx.EmptyImage(self.NewW,self.NewH)
 
-		'''
-		The following code tries to set a jump value: meaning the amound of
-		darkness that an adjacent pixel increase based on the darkness of the current pixel
-		which is clicked by the user, this value is assumed by taking the value
-		of the red channel of the current clicked pixel. The higher the current 
-		red value the smaller the the difference of the jump value. When there is 
-		a greater fluctuation, ie., a greater difference in the red channel value 
-		of the current pixel with the next pixel (the differnce more that what 
-		is set by the below jump value), then we have reached the edge of the 
-		whisker spot, owing to the end of the darkness of the spot and the light 
-		colour of the fur. This is the method used to enf the loop that searches 
-		for the extant of every clicked whisker.
-		'''
+        '''
+        The following code tries to set a jump value: meaning the amound of
+        darkness that an adjacent pixel increase based on the darkness of the current pixel
+        which is clicked by the user, this value is assumed by taking the value
+        of the red channel of the current clicked pixel. The higher the current 
+        red value the smaller the the difference of the jump value. When there is 
+        a greater fluctuation, ie., a greater difference in the red channel value 
+        of the current pixel with the next pixel (the differnce more that what 
+        is set by the below jump value), then we have reached the edge of the 
+        whisker spot, owing to the end of the darkness of the spot and the light 
+        colour of the fur. This is the method used to enf the loop that searches 
+        for the extant of every clicked whisker.
+        '''
 
         '''if (mR>=20 and mR<=40):
             mVmax=mR+10
@@ -444,10 +448,10 @@ class MainWindow(lsu.MyFrame1):
                 c = c+1# if there are more than 3 pixels marked in a single run, continue searching
         
         self.centroid()
-		'''
-		calling the cenrtoid function to compute the centroud 
-		of a single whisker spot, after finding all its contributing pixels
-		'''
+        '''
+        calling the cenrtoid function to compute the centroud 
+        of a single whisker spot, after finding all its contributing pixels
+        '''
 
 
         # scale the image, preserving the aspect ratio
@@ -462,7 +466,7 @@ class MainWindow(lsu.MyFrame1):
         self.img4 = self.img3
         self.img4 = self.img4.Scale(NewW,NewH)
 
-		#the image to have a small preview in the UI
+        #the image to have a small preview in the UI
  
         self.m_bitmap2.SetBitmap(wx.BitmapFromImage(self.img4))
         self.m_panel1.Refresh()
@@ -508,12 +512,21 @@ class MainWindow(lsu.MyFrame1):
 
         
     def save_cal(self, event):
+        '''
+        creating a csv file saving the ratio list of
+        all possible ratios of all distances
+        between the centroids.
+        '''
         self.profile = 'no_profile'
         if (self.m_radioBtn2.GetValue() == True):
             self.profile='_right_profile'
         if (self.m_radioBtn4.GetValue() == True):
             self.profile='_left_profile'    
         with open('Csvs/' + self.m_textCtrl3.Value + self.profile + '.csv', 'w') as csvfile:
+            '''
+            file naming scheme of lion name and the specified profile is taken 
+            into account for the generated csv file
+            '''
             mywriter = csv.writer(csvfile, delimiter=' ',quotechar='|', quoting=csv.QUOTE_MINIMAL)
             for i in range(len(self.disratiolist)-1):
                 mywriter.writerow([self.disratiolist[i]])
@@ -524,6 +537,14 @@ class MainWindow(lsu.MyFrame1):
                 print ', '.join(row)'''
     
     def compare(self, event):
+        '''
+        comparing all the files within the csv folder, flie by file
+        and row by row, searching for similarity between the ratios in the 
+        file and the current ratio list of the current image (generated
+        after the calculate ratios button is clicked) The score value is 
+        increased by 1 if even one ratio matches within 1 unit of 
+        coordinate distance ratio.
+        '''
         files = os.listdir('Csvs')
         score=0
         for f in files:
@@ -549,6 +570,10 @@ class MainWindow(lsu.MyFrame1):
                 self.Log( 'This is no match')
                 self.Log( 'score: %d \n'% score)
     def calculate(self, event):
+        '''
+        calculating the distance between all the centroids and then generating
+        a ratio list of all the distances calculated
+        '''
         self.dislist = []
         for i in range(len(self.cList)-1):
             for j in range(i,len(self.cList)-1):
@@ -581,6 +606,9 @@ class ZoomFrame(lsu.MyFrame2):
         self.m_panel3.Layout()
         self.box.Fit( self.m_panel3 )
         NC = NavCanvas.NavCanvas(self.m_panel3)
+        '''
+        NavCanvas adds the navigation toolbar to zoom and pan around in the image
+        '''
         self.Canvas = NC.Canvas
         self.box.Add( NC, 4, wx.EXPAND )
         self.Canvas.AddScaledBitmap(wx.BitmapFromImage(parent.img),(0,0),800,Position = "cc")
