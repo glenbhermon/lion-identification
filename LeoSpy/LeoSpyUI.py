@@ -85,7 +85,7 @@ class MyFrame1 ( wx.Frame ):
 		bSizer11.Add( self.m_textCtrl3, 0, wx.ALL, 5 )
 		
 		
-		bSizer10.Add( bSizer11, 0, wx.ALIGN_RIGHT, 5 )
+		bSizer10.Add( bSizer11, 0, wx.ALL, 5 )
 		
 		bSizer12 = wx.BoxSizer( wx.HORIZONTAL )
 		
@@ -180,13 +180,13 @@ class MyFrame1 ( wx.Frame ):
 		bSizer13.Add( self.m_textCtrl2, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		self.m_bitmap2 = wx.StaticBitmap( self.m_panel1, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer13.Add( self.m_bitmap2, 1, wx.ALL|wx.ALIGN_BOTTOM|wx.EXPAND, 5 )
+		bSizer13.Add( self.m_bitmap2, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer6.Add( bSizer13, 1, wx.ALIGN_BOTTOM|wx.EXPAND, 5 )
+		bSizer6.Add( bSizer13, 1, wx.EXPAND, 5 )
 		
 		
-		bSizer5.Add( bSizer6, 1, wx.EXPAND|wx.ALIGN_RIGHT, 5 )
+		bSizer5.Add( bSizer6, 1, wx.EXPAND, 5 )
 		
 		
 		bSizer2.Add( bSizer5, 0, wx.EXPAND, 5 )
@@ -261,7 +261,7 @@ class MyFrame2 ( wx.Frame ):
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Zoom and Crop", pos = wx.DefaultPosition, size = wx.Size( 716,471 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		self.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_BTNHIGHLIGHT ) )
 		self.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_BTNHIGHLIGHT ) )
 		
@@ -275,9 +275,11 @@ class MyFrame2 ( wx.Frame ):
 		
 		bSizer7 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_bpButton9 = wx.BitmapButton( self, wx.ID_ANY, wx.Bitmap( u"Crop 40.png", wx.BITMAP_TYPE_ANY ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+		self.m_bpButton9 = wx.Button( self, wx.ID_ANY, "Crop" , wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
+
+		#self.m_bpButton9 = wx.BitmapButton( self, wx.ID_ANY, wx.Bitmap( u"Crop 40.png", wx.BITMAP_TYPE_ANY ), wx.DefaultPosition, wx.DefaultSize, wx.BU_AUTODRAW )
 		
-		self.m_bpButton9.SetBitmapCurrent( wx.Bitmap( u"Crop 50.png", wx.BITMAP_TYPE_ANY ) )
+		#self.m_bpButton9.SetBitmapCurrent( wx.Bitmap( u"Crop 50.png", wx.BITMAP_TYPE_ANY ) )
 		bSizer7.Add( self.m_bpButton9, 0, wx.ALL, 5 )
 		
 		

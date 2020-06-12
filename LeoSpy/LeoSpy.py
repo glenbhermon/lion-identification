@@ -611,7 +611,7 @@ class ZoomFrame(lsu.MyFrame2):
         '''
         self.Canvas = NC.Canvas
         self.box.Add( NC, 4, wx.EXPAND )
-        self.Canvas.AddScaledBitmap(wx.BitmapFromImage(parent.img),(0,0),800,Position = "cc")
+        self.Canvas.AddScaledBitmap(wx.Bitmap(parent.img),(0,0),800,Position = "cc")
         self.Canvas.Draw() 
         self.parent = parent
 
