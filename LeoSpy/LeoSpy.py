@@ -71,10 +71,14 @@ class MainWindow(lsu.MyFrame1):
         
         self.img0=cv2.imread('crop.png',0)
 
-        self.th3 = cv2.adaptiveThreshold(self.img0,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-            cv2.THRESH_BINARY_INV,501,45)
+        self.img00 = cv2.imread('crop.png')
 
-        cv2.imwrite('sam.png', self.th3)
+        ret,self.th1 = cv2.threshold(self.img00,80,200,cv2.THRESH_BINARY)
+
+        self.th3 = cv2.adaptiveThreshold(self.img0,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY,501,45)
+
+        cv2.imwrite('sam.png', self.th1)
         self.img1=cv2.imread('sam.png')
         self.img2 = wx.Image('sam.png', wx.BITMAP_TYPE_ANY)
         '''
@@ -104,6 +108,107 @@ class MainWindow(lsu.MyFrame1):
         ZoomApp = ZoomFrame(self) # making an object of class ZoomFrame
         ZoomApp.Show()# calling the Show function from the wx toolkit for this frame
 
+    
+    def get8n(self,x,y):
+    
+        out = []
+
+        #bottom
+        outx = x
+        outy = y-1
+        out.append((outx,outy))
+
+        #bottom left
+        outx = x-1
+        outy = y-1
+        out.append((outx,outy)) 
+
+        #bottom right
+        outx = x+1
+        outy = y-1
+        out.append((outx,outy))
+
+        #left
+        outx = x-1
+        outy = y
+        out.append((outx,outy))
+
+        #right
+        outx = x+1
+        outy = y
+        out.append((outx,outy))
+
+        #top
+        outx = x
+        outy = y+1
+        out.append((outx,outy))
+
+        #top right
+        outx = x+1
+        outy = y+1
+        out.append((outx,outy))
+
+        #top left
+        outx = x-1
+        outy = y+1
+        out.append((outx,outy))
+
+
+        return out
+
+
+    def regionGrow(self,X,Y):
+
+        pixelList = []
+        pixelList.append((X, Y))
+        processed = []
+        while(len(pixelList) > 0):
+            
+            pix = pixelList[0]
+
+            self.img3.SetRGB(pix[0],pix[1],255,255,255)
+            self.blob.SetRGB(pix[0],pix[1],255,255,255)
+            self.Xc+=pix[0]
+            self.Yc+=pix[1]
+            self.Wn+=1
+        
+            mR=(self.img2.GetRed(pix[0],pix[1])*0.299)+(self.img2.GetGreen(pix[0],pix[1])*0.587)+(self.img2.GetBlue(pix[0],pix[1])*0.114)
+            
+            '''if (mR>=41 and mR<=100):
+                mVmax=mR+50
+            if (mR>=101 and mR<=130):
+                mVmax=mR+25
+            if (mR>=131 and mR<=170):
+                mVmax=mR+15
+            else:
+                '''
+            mVmax=mR+5
+
+
+            for coord in self.get8n(pix[0], pix[1]):
+
+                mRn=(self.img2.GetRed(coord[0],coord[1])*0.299)+(self.img2.GetGreen(coord[0],coord[1])*0.587)+(self.img2.GetBlue(coord[0],coord[1])*0.114)
+
+                if (mRn<mVmax and mRn<100):
+
+                    self.img3.SetRGB(coord[0],coord[1],255,255,255)
+                    self.blob.SetRGB(coord[0],coord[1],255,255,255)
+                    self.Xc+=coord[0]
+                    self.Yc+=coord[1]
+                    self.Wn+=1
+                    if not coord in processed:
+                        pixelList.append(coord)
+                    processed.append(coord)
+            pixelList.pop(0)
+
+        return ()
+
+
+
+
+
+    
+    
     def someListener(self,evt):
         
         X=evt.GetX()
@@ -157,12 +262,20 @@ class MainWindow(lsu.MyFrame1):
             
         c=1        
         i=1
-        self.Xc=0#this stores the sum od all the x coordinates to later calculate the centroid of a single whisker spot
-        self.Yc=0#this stores the sum od all the y coordinates to later calculate the centroid of a single whisker spot
+        self.Xc=0#this stores the sum of all the x coordinates to later calculate the centroid of a single whisker spot
+        self.Yc=0#this stores the sum of all the y coordinates to later calculate the centroid of a single whisker spot
         self.Wn=0# this stores the total number of pixels picked up to later calculate the centroid of a single whisker spot
         
+        if ((X+1)>(self.NewW-1) or (Y+1)>(self.NewH-1) or (X-1)<0 or (Y-1)<0):
+            return()
 
-        while (i <= c):
+        self.regionGrow(X,Y)
+
+        if (self.Wn>1):
+            self.centroid()
+
+
+        '''while (i <= c):
 
             
             
@@ -175,14 +288,24 @@ class MainWindow(lsu.MyFrame1):
                 
                 
                 
-            j = i+1    
-            while (j >= i+1):
+            j = i    
+            while (j >= i):
                 
                 
                 if ((X+j)>(self.NewW-1) or (Y+j)>(self.NewH-1) or (X-j)<0 or (Y-j)<0):
                     break  
                 
                 mGa=self.img2.GetRed(X+j,Y+i)
+                mGf=self.img2.GetRed(X+j,Y-i)
+                mGu=self.img2.GetRed(X-j,Y+i)
+                mGd=self.img2.GetRed(X-j,Y-i)
+
+                mRa=self.img2.GetRed(X+i,Y+j)
+                mRf=self.img2.GetRed(X+i,Y-j)
+                mRu=self.img2.GetRed(X-i,Y+j)
+                mRd=self.img2.GetRed(X-i,Y-j)
+
+
 
                 if (mGa>mVmin and mGa<mVmax):
                     if (abs(self.img2.GetRed(X+j,Y+i)-self.img2.GetRed(X+j-1,Y+i))<=jump):
@@ -196,14 +319,9 @@ class MainWindow(lsu.MyFrame1):
                     j = j+1
                 else:
                     break
-            j = i+1
-            while (j >= i+1):
-                
-                
-                if ((X+j)>(self.NewW-1) or (Y+j)>(self.NewH-1) or (X-j)<0 or (Y-j)<0):
-                    break  
 
-                mGf=self.img2.GetRed(X+j,Y-i)
+
+                
 
                 if (mGf>mVmin and mGf<mVmax):
                     if (abs(self.img2.GetRed(X+j,Y-i)-self.img2.GetRed(X+j-1,Y+i))<=jump):
@@ -218,14 +336,9 @@ class MainWindow(lsu.MyFrame1):
                 else:
                     break
             
-            j = i+1    
-            while (j >= i+1):
-                
-                
-                if ((X+j)>(self.NewW-1) or (Y+j)>(self.NewH-1) or (X-j)<0 or (Y-j)<0):
-                    break  
 
-                mGu=self.img2.GetRed(X-j,Y+i)
+
+                
 
                 if (mGu>mVmin and mGu<mVmax):
                     if (abs(self.img2.GetRed(X-j,Y+i)-self.img2.GetRed(X-j+1,Y+i))<=jump):
@@ -240,15 +353,8 @@ class MainWindow(lsu.MyFrame1):
                 else:
                     break
 
-
-            j = i+1
-            while (j >= i+1):
+           
                 
-                
-                if ((X+j)>(self.NewW-1) or (Y+j)>(self.NewH-1) or (X-j)<0 or (Y-j)<0):
-                    break  
-
-                mGd=self.img2.GetRed(X-j,Y-i)
 
                 if (mGd>mVmin and mGd<mVmax):
                     if (abs(self.img2.GetRed(X-j,Y-i)-self.img2.GetRed(X-j+1,Y+i))<=jump):
@@ -262,16 +368,9 @@ class MainWindow(lsu.MyFrame1):
                     j = j+1
                 else:
                     break
-            
+             
 
-            j = i+1
-            while (j >= i+1):
                 
-                
-                if ((X+j)>(self.NewW-1) or (Y+j)>(self.NewH-1) or (X-j)<0 or (Y-j)<0):
-                    break
-
-                mRa=self.img2.GetRed(X+i,Y+j)
                             
           
                 if (mRa>mVmin and mRa<mVmax):
@@ -287,15 +386,7 @@ class MainWindow(lsu.MyFrame1):
                 else:
                     break
             
-
-            j = i+1
-            while (j >= i+1):
                 
-                
-                if ((X+j)>(self.NewW-1) or (Y+j)>(self.NewH-1) or (X-j)<0 or (Y-j)<0):
-                    break
-
-                mRf=self.img2.GetRed(X+i,Y-j)
 
                 if (mRf>mVmin and mRf<mVmax):
                     if (abs(self.img2.GetRed(X+i,Y-j)-self.img2.GetRed(X+i,Y-j+1))<=jump):
@@ -311,14 +402,8 @@ class MainWindow(lsu.MyFrame1):
                     break
 
 
-            j = i+1
-            while (j >= i+1):
-                
-                
-                if ((X+j)>(self.NewW-1) or (Y+j)>(self.NewH-1) or (X-j)<0 or (Y-j)<0):
-                    break
 
-                mRu=self.img2.GetRed(X-i,Y+j)
+                
 
                 if (mRu>mVmin and mRu<mVmax):
                     if (abs(self.img2.GetRed(X-i,Y+j)-self.img2.GetRed(X-i,Y+j-1))<=jump):
@@ -333,15 +418,8 @@ class MainWindow(lsu.MyFrame1):
                 else:
                     break
 
-
-            j = i+1
-            while (j >= i+1):
                 
                 
-                if ((X+j)>(self.NewW-1) or (Y+j)>(self.NewH-1) or (X-j)<0 or (Y-j)<0):
-                    break
-
-                mRd=self.img2.GetRed(X-i,Y-j)
 
                 if (mRd>mVmin and mRd<mVmax):
                     if (abs(self.img2.GetRed(X-i,Y-j)-self.img2.GetRed(X-i,Y-j+1))<=jump):
@@ -356,7 +434,12 @@ class MainWindow(lsu.MyFrame1):
                 else:
                     break
 
-                
+
+
+
+
+            j = i+1
+            
             
 
             mGx=self.img2.GetRed(X+i,Y+i)
@@ -446,8 +529,9 @@ class MainWindow(lsu.MyFrame1):
             i = i+1#incrementer for the main while loop
             if s>=3 :
                 c = c+1# if there are more than 3 pixels marked in a single run, continue searching
-        
-        self.centroid()
+        '''
+
+
         '''
         calling the cenrtoid function to compute the centroud 
         of a single whisker spot, after finding all its contributing pixels
@@ -527,9 +611,12 @@ class MainWindow(lsu.MyFrame1):
             file naming scheme of lion name and the specified profile is taken 
             into account for the generated csv file
             '''
-            mywriter = csv.writer(csvfile, delimiter=' ',quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            for i in range(len(self.disratiolist)-1):
+            mywriter = csv.writer(csvfile, delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            '''for i in range(len(self.disratiolist)-1):
                 mywriter.writerow([self.disratiolist[i]])
+            '''
+            #for i in range(len(self.disradlist)-1):
+            mywriter.writerows(list(map(list, zip(*self.disradlist))))#Transposing the lists to be columns
         
         '''with open('Lion1.csv', 'rb') as csvfile:
             myreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
@@ -574,23 +661,40 @@ class MainWindow(lsu.MyFrame1):
         calculating the distance between all the centroids and then generating
         a ratio list of all the distances calculated
         '''
-        self.dislist = []
+        '''
+        self.disradlist = []
         for i in range(len(self.cList)-1):
             for j in range(i,len(self.cList)-1):
                 dis= math.sqrt(((self.cList[i][0]-self.cList[j+1][0])**2)+((self.cList[i][1]-self.cList[j+1][1])**2))
-                self.dislist.append(dis)
-        gen1 = (str(w) for w in self.dislist)
+                self.disradlist.append(dis)
+        '''
+        self.disradlist = []
+        for i in range(len(self.cList)):
+            dislist = []
+            radlist = []
+            for j in range(len(self.cList)):
+                #if(i==j):
+                #    continue
+                dis= math.sqrt(((self.cList[i][0]-self.cList[j][0])**2)+((self.cList[i][1]-self.cList[j][1])**2))
+                dislist.append(dis)
+                rad=math.atan2(self.cList[i][1]-self.cList[j][1],self.cList[i][0]-self.cList[j][0])
+                radlist.append(rad) 
+            self.disradlist.append(dislist)
+            self.disradlist.append(radlist)
+
+        '''
+        gen1 = (str(w) for w in self.disradlist)
         self.Log('Distances are:')
         self.Log(','.join(gen1))
         self.disratiolist = []
-        for a in range(len(self.dislist)-1):
-            for b in range(a,len(self.dislist)-1):
-                ratio = round(self.dislist[a]/self.dislist[b+1],3)
+        for a in range(len(self.disradlist)-1):
+            for b in range(a,len(self.disradlist)-1):
+                ratio = round(self.disradlist[a]/self.disradlist[b+1],3)
                 self.disratiolist.append(ratio)
         gen2 = (str(w) for w in self.disratiolist)
         self.Log('Distance ratios are:')
         self.Log(','.join(gen2))
-        
+       ''' 
 
        
 
